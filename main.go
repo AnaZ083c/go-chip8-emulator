@@ -54,5 +54,13 @@ func main() {
 		if elapsed < chip8sys.TIME_PER_INSTRUCTION {
 			time.Sleep(chip8sys.TIME_PER_INSTRUCTION - elapsed)
 		}
+
+		if chip8.GetDelayTimer() > 0 {
+			chip8.SetDelayTimer(chip8.GetDelayTimer() - 1)
+		}
+
+		if chip8.GetSoundTimer() > 0 {
+			chip8.SetSoundTimer(chip8.GetSoundTimer() - 1)
+		}
 	}
 }

@@ -1,8 +1,11 @@
 package chip8sys
 
 import (
-	"encoding/json"
+	"bufio"
+	"errors"
 	"fmt"
+	"io"
+	"os"
 	"time"
 
 	"github.com/veandco/go-sdl2/sdl"
@@ -13,7 +16,7 @@ const (
 	HEIGHT        = 32
 	START_ADDRESS = 0x200
 
-	FONT_ADDRESS_START_INDEX = 80
+	FONT_ADDRESS_START_INDEX = 0x050
 
 	CHIP8_INSTRUCTIONS_PER_SECOND = 700
 	TIME_PER_INSTRUCTION          = time.Second / CHIP8_INSTRUCTIONS_PER_SECOND
@@ -74,6 +77,7 @@ func NewChip8() (*Chip8, error) {
 	chip8 := &Chip8{
 		delayTimer: 255,
 		soundTimer: 255,
+		pc:         START_ADDRESS,
 	}
 	font := GetFont()
 
@@ -84,17 +88,52 @@ func NewChip8() (*Chip8, error) {
 	return chip8, nil
 }
 
-func (c *Chip8) ToString() string {
-	chip8json, err := json.Marshal(c)
-	if err != nil {
-		panic(err)
-	}
-	return string(chip8json)
+func (c *Chip8) GetMemory() []byte {
+	return c.memory[:]
+}
+
+func (c *Chip8) GetDelayTimer() byte {
+	return c.delayTimer
+}
+
+func (c *Chip8) GetSoundTimer() byte {
+	return c.soundTimer
+}
+
+func (c *Chip8) SetDelayTimer(newValue byte) {
+	c.delayTimer = newValue
+}
+
+func (c *Chip8) SetSoundTimer(newValue byte) {
+	c.soundTimer = newValue
 }
 
 func (c *Chip8) Load(chip8file string) {
-	// TODO: Load a program
-	fmt.Println("Fetch: not yet implemented")
+	// Load a program into memory
+	file, err := os.Open(chip8file)
+	if err != nil {
+		panic(err)
+	}
+
+	// Get an array of bytes from the file
+	br := bufio.NewReader(file)
+	readBytes := []byte{}
+	for {
+		_byte, err := br.ReadByte()
+		if err != nil && !errors.Is(err, io.EOF) {
+			fmt.Println(err)
+			break
+		}
+		readBytes = append(readBytes, _byte)
+
+		if err != nil {
+			break
+		}
+	}
+
+	for i := 0; i < len(readBytes); i++ {
+		c.memory[START_ADDRESS+i] = readBytes[i]
+	}
 }
 
 func (c *Chip8) Fetch() {
@@ -103,10 +142,7 @@ func (c *Chip8) Fetch() {
 	fmt.Println("Fetch: not yet implemented")
 }
 
-func (c *Chip8) Decode() {
-	// the instruction to find out what the emulator should do
-	// TODO
-	fmt.Println("Decode: not yet implemented")
+	return instruction
 }
 
 func (c *Chip8) Execute() {

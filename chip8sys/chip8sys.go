@@ -136,11 +136,10 @@ func (c *Chip8) Load(chip8file string) {
 	}
 }
 
-func (c *Chip8) Fetch() {
+func (c *Chip8) Fetch() uint16 {
 	// instruction from memory at the current PC (program counter)
-	// TODO
-	fmt.Println("Fetch: not yet implemented")
-}
+	instruction := uint16(c.memory[c.pc])<<8 | uint16(c.memory[c.pc+1])
+	c.pc += 2
 
 	return instruction
 }

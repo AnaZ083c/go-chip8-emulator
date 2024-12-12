@@ -15,6 +15,8 @@ const (
 func main() {
 	chip8, _ := chip8sys.NewChip8()
 
+	chip8.Load("./test/IBM_Logo.ch8")
+
 	// Init SDL2
 	if err := sdl.Init(sdl.INIT_EVERYTHING); err != nil {
 		panic(err)
@@ -48,7 +50,8 @@ func main() {
 		}
 
 		// Execute one CHIP-8 instruction
-		chip8.Execute()
+		instruction := chip8.Fetch()
+		chip8.Execute(instruction)
 
 		elapsed := time.Since(cycleStart)
 		if elapsed < chip8sys.TIME_PER_INSTRUCTION {

@@ -108,6 +108,12 @@ func (c *Chip8) SetSoundTimer(newValue byte) {
 	c.soundTimer = newValue
 }
 
+func (c *Chip8) ClearScreen() {
+  for i := 0; i < len(c.display); i++ {
+    c.display[i] = 0
+  }
+}
+
 func (c *Chip8) Load(chip8file string) {
 	// Load a program into memory
 	file, err := os.Open(chip8file)
@@ -144,8 +150,48 @@ func (c *Chip8) Fetch() uint16 {
 	return instruction
 }
 
-func (c *Chip8) Execute() {
-	// the instruction and do what it tells you
-	// TODO
-	fmt.Println("Execute: not yet implemented")
+func (c *Chip8) Execute(instruction uint16) {
+	// decode the instruction and execute
+	switch 0xF000 & instruction {
+	case 0x0000:
+		if instruction == 0x00E0 { // clear screen
+      fmt.Println("Clear screen: set all pixels to 0")
+      c.ClearScreen()
+		}
+		break
+	case 0x1000: // jump instruction
+		jumpAddr := instruction & 0x0FFF
+		fmt.Printf("Jump to address: %x\n", jumpAddr)
+		c.pc = jumpAddr
+		break
+	case 0x6000: // set register
+		register := (instruction & 0x0F00) >> 8
+		newValue := byte(instruction & 0x00FF)
+		fmt.Printf("Set register: %x, new value: %x\n", register, newValue)
+		c.registers[register] = newValue
+		break
+	case 0x7000: // add value to register
+		register := (instruction & 0x0F00) >> 8
+		addValue := byte(instruction & 0x00FF)
+		fmt.Printf("Add value %x to register %x\n", register, addValue)
+		c.registers[register] += addValue
+		break
+	case 0xA000: // set index register I
+		newValue := 0x0FFF
+		fmt.Printf("Set index register to: %x\n", newValue)
+		c.I = uint16(newValue)
+		break
+	case 0xD000: // display/draw
+		xCoordRegister := (instruction & 0x0F00) >> 8
+		yCoordRegister := (instruction & 0x00F0) >> 4
+
+		xCoord := c.registers[xCoordRegister]
+		yCoord := c.registers[yCoordRegister]
+		drawRowsNum := instruction & 0x000F
+
+		fmt.Printf("Drawing a sprite on (%x, %x) with number of rows: %x\n", xCoord, yCoord, drawRowsNum)
+
+		// TODO: implement drawing
+		break
+	}
 }
